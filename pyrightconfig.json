@@ -1,0 +1,17 @@
+{
+    "executionEnvironments": [
+        {
+            // Analysiere als MicroPython Code
+            "extraPaths": [
+                ".",
+                "./lib", // Falls Sie lokale Bibliotheken haben
+                "~/.local/lib/python3.11/site-packages/micropython-stubs",
+                "~/.local/lib/python3.11/site-packages/paho-mqtt"
+            ],
+            // Wichtig: Verwenden Sie 'MicroPython' für die Typüberprüfung
+            "pythonPlatform": "MicroPython" 
+        }
+    ],
+    // Deaktivieren Sie Warnungen für nicht aufgelöste Imports, falls die Stubs nicht gefunden werden
+    "reportMissingImports": "warning" 
+}
