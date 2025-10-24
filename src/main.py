@@ -1,14 +1,10 @@
 # main.py - MicroPython MQTT Client für HiveMQ Cloud (TLS/SSL)
-# Diese Datei sollte im Ordner 'src/' platziert werden.
-
 import time
 import ssl
 import json
 import urandom  # Importiert für die Generierung von Zufallszahlen
 from umqtt.simple import MQTTClient
 
-# --- KONSTANTEN ---
-# Wir erwarten, dass die Konfigurationsdateien im Ordner 'config/' liegen
 CONFIG_FILE = "config/config.json"
 MQTT_PORT = 8883  # WICHTIG: TLS-Port für HiveMQ Cloud
 CLIENT_ID = "ESP32_MicroPython_Client_A"
@@ -39,7 +35,6 @@ def load_config():
 
         return True
     except OSError as e:
-        # Error: Configuration file not found.
         print(
             f"FEHLER: Eine Konfigurationsdatei nicht gefunden: {e}. Prüfen Sie die Pfade und Dateien."
         )
