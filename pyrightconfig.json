@@ -1,17 +1,17 @@
 {
-    "executionEnvironments": [
-        {
-            // Analysiere als MicroPython Code
-            "extraPaths": [
-                ".",
-                "./lib", // Falls Sie lokale Bibliotheken haben
-                "~/.local/lib/python3.11/site-packages/micropython-stubs",
-                "~/.local/lib/python3.11/site-packages/paho-mqtt"
-            ],
-            // Wichtig: Verwenden Sie 'MicroPython' für die Typüberprüfung
-            "pythonPlatform": "MicroPython" 
-        }
-    ],
-    // Deaktivieren Sie Warnungen für nicht aufgelöste Imports, falls die Stubs nicht gefunden werden
-    "reportMissingImports": "warning" 
+  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/docs/config.schema.json",
+  "typeCheckingMode": "off",
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+  "executionEnvironments": [
+    {
+      "root": "./src",                // dein Code liegt im src-Ordner
+      "pythonPlatform": "MicroPython",
+      "extraPaths": [
+        ".",                          // aktuelles Projekt
+        "./lib",                      // lokaler lib-Ordner (z. B. umqtt.simple)
+        "~/.local/lib/python3.11/site-packages/micropython-stubs" // falls du Stubs installiert hast
+      ]
+    }
+  ]
 }
