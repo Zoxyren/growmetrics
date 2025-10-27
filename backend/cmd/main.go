@@ -19,15 +19,13 @@ func main() {
 
 	client := mqttclient.EstablishESPConnection(config)
 	defer client.Disconnect(250)
-	// subscribeToken := mqttclient.RecieveTopics(client)
 	subscribeToken := mqttclient.RecieveTopics(client, "esp32/oliver1/metrics", byte(1))
-	print(subscribeToken)
 
 	if subscribeToken.Wait() && subscribeToken.Error() != nil {
 		slog.Error("Failed to subscribe to topic!", "error", subscribeToken.Error)
 	}
-	// todo: add, revecing  message from the broker
 
 	fmt.Println("Programm läuft und hält die Verbindung. Beenden mit Ctrl+C.")
+	print(subscribeToken)
 	select {}
 }

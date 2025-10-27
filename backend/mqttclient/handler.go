@@ -7,7 +7,6 @@ import (
 )
 
 func RecieveTopics(c mqtt.Client, topic string, qos byte) mqtt.Token {
-	// topic = "esp32/oliver1/metrics"
 	token := c.Subscribe(topic, qos, RevieveMessage)
 	token.Wait()
 	fmt.Println("Subscription to the topic succesfully", topic)
