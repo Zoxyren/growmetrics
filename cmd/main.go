@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 
 	"esp32/backend/mqttclient"
 )
@@ -9,7 +10,7 @@ import (
 func main() {
 	config := mqttclient.MQTTBroker{
 		MQTTBroker: "8b758ea22b9f4c0f94ac43c9b09a254f.s1.eu.hivemq.cloud",
-		MQTTUser:   "oliver1",
+		MQTTUser:   "oliver3",
 		MQTTPW:     "tESTUSER1234",
 		MQTTTopic:  "esp32/oliver1/metrics",
 		MQTTPort:   8883,
@@ -18,9 +19,14 @@ func main() {
 
 	client := mqttclient.EstablishESPConnection(config)
 	defer client.Disconnect(250)
+	// subscribeToken := mqttclient.RecieveTopics(client)
+	subscribeToken := mqttclient.RecieveTopics(client, "esp32/oliver1/metrics", byte(1))
+	print(subscribeToken)
 
-	token := client.Publish(config.MQTTTopic, 0, false, "Hallo MQTT!")
-	token.Wait()
+	if subscribeToken.Wait() && subscribeToken.Error() != nil {
+		slog.Error("Failed to subscribe to topic!", "error", subscribeToken.Error)
+	}
+	// todo: add, revecing  message from the broker
 
 	fmt.Println("Programm läuft und hält die Verbindung. Beenden mit Ctrl+C.")
 	select {}
