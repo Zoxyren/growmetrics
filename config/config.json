@@ -1,5 +1,4 @@
-{
-"mqtt_server": "8b758ea22b9f4c0f94ac43c9b09a254f.s1.eu.hivemq.cloud",
-"mqtt_user": "esp32_1",
-"mqtt_password": "Testuser123"
+{ "mqtt_server": "8b758ea22b9f4c0f94ac43c9b09a254f.s1.eu.hivemq.cloud", 
+  "mqtt_user": "oliver3", 
+  "mqtt_password": "tESTUSER1234"
 }
