@@ -5,12 +5,12 @@
   "reportMissingModuleSource": false,
   "executionEnvironments": [
     {
-      "root": "./src",                // dein Code liegt im src-Ordner
+      "root": "./src",               
       "pythonPlatform": "MicroPython",
       "extraPaths": [
-        ".",                          // aktuelles Projekt
-        "./lib",                      // lokaler lib-Ordner (z. B. umqtt.simple)
-        "~/.local/lib/python3.11/site-packages/micropython-stubs" // falls du Stubs installiert hast
+        ".",                          
+        "./lib",                      
+        "~/.local/lib/python3.11/site-packages/micropython-stubs" 
       ]
     }
   ]
