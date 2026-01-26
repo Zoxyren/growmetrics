@@ -20,7 +20,7 @@ func main() {
 	}
 	adapter := mqttclient.NewAdapter(cfg)
 	if err := adapter.Connect(); err != nil {
-		slog.Error("Konnte MQTT nicht verbinden", err)
+		slog.Error("Konnte MQTT nicht verbinden", "error:", err)
 	}
 	go func() {
 		defer adapter.Disconnect(250)
