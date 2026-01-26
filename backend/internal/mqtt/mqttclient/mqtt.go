@@ -16,6 +16,11 @@ type MQTTBroker struct {
 	MQTTPort   int
 }
 
+type MQTTAdapter struct {
+	client mqtt.Client
+	config MQTTBroker
+}
+
 // Todo: .env variables instead of clear
 var config = MQTTBroker{
 	MQTTBroker: "8b758ea22b9f4c0f94ac43c9b09a254f.s1.eu.hivemq.cloud",
@@ -23,28 +28,42 @@ var config = MQTTBroker{
 	MQTTPW:     "tESTUSER1234",
 	MQTTTopic:  "esp32/oliver1/metrics",
 	MQTTPort:   8883,
+	ClientID:   "GoClient-12345",
 }
 
-func EstablishESPConnection(config MQTTBroker) mqtt.Client {
+func NewAdapter(cfg MQTTBroker) *MQTTAdapter {
+	return &MQTTAdapter{
+		config: cfg,
+	}
+}
+
+func (a *MQTTAdapter) Connect() error {
 	opts := mqtt.NewClientOptions()
 	// opts.AddBroker(config.MQTTBroker)
-	brokerURL := fmt.Sprintf("tls://%s:%d", config.MQTTBroker, config.MQTTPort)
+	brokerURL := fmt.Sprintf("tls://%s:%d", a.config.MQTTBroker, a.config.MQTTPort)
 	opts.AddBroker(brokerURL)
-	opts.SetClientID(config.ClientID)
-	opts.SetUsername(config.MQTTUser)
-	opts.SetPassword(config.MQTTPW)
+	opts.SetClientID(a.config.ClientID)
+	opts.SetUsername(a.config.MQTTUser)
+	opts.SetPassword(a.config.MQTTPW)
 
 	opts.OnConnect = func(c mqtt.Client) {
 		fmt.Println("✅ Verbunden mit MQTT-Broker:", config.MQTTBroker)
 	}
-	client := mqtt.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
+	a.client = mqtt.NewClient(opts)
+	if token := a.client.Connect(); token.Wait() && token.Error() != nil {
 		slog.Error(
 			"cannot establish connection to ESP",
 			slog.Any("reason", token.Error()),
 			slog.String("broker_url", brokerURL),
 		)
-		panic(error.Error)
+		return token.Error()
 	}
-	return client
+	return nil
+}
+
+func (a *MQTTAdapter) Disconnect(quiesce uint) {
+	if a.client != nil && a.client.IsConnected() {
+		a.client.Disconnect(quiesce)
+		fmt.Println("MQTT Verbindung erfolgreich geschlossen")
+	}
 }
