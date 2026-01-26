@@ -3,20 +3,23 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/labstack/echo/v4"
+
+	_ "github.com/joho/godotenv/autoload"
 
 	"esp32/backend/internal/mqtt/mqttclient"
 )
 
 func main() {
 	cfg := mqttclient.MQTTBroker{
-		MQTTBroker: "8b758ea22b9f4c0f94ac43c9b09a254f.s1.eu.hivemq.cloud",
-		MQTTUser:   "oliver3",
-		MQTTPW:     "tESTUSER1234",
-		MQTTTopic:  "esp32/oliver1/metrics",
+		MQTTBroker: os.Getenv("MQTTBroker"),
+		MQTTUser:   os.Getenv("MQTTUser"),
+		MQTTPW:     os.Getenv("MQTTPW"),
+		MQTTTopic:  os.Getenv("MQTTTopic"),
 		MQTTPort:   8883,
-		ClientID:   "GoClient-12345",
+		ClientID:   os.Getenv("ClientID"),
 	}
 	adapter := mqttclient.NewAdapter(cfg)
 	if err := adapter.Connect(); err != nil {
