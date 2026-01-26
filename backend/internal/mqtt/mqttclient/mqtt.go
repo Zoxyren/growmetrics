@@ -21,16 +21,6 @@ type MQTTAdapter struct {
 	config MQTTBroker
 }
 
-// Todo: .env variables instead of clear
-var config = MQTTBroker{
-	MQTTBroker: "8b758ea22b9f4c0f94ac43c9b09a254f.s1.eu.hivemq.cloud",
-	MQTTUser:   "oliver3",
-	MQTTPW:     "tESTUSER1234",
-	MQTTTopic:  "esp32/oliver1/metrics",
-	MQTTPort:   8883,
-	ClientID:   "GoClient-12345",
-}
-
 func NewAdapter(cfg MQTTBroker) *MQTTAdapter {
 	return &MQTTAdapter{
 		config: cfg,
@@ -47,7 +37,7 @@ func (a *MQTTAdapter) Connect() error {
 	opts.SetPassword(a.config.MQTTPW)
 
 	opts.OnConnect = func(c mqtt.Client) {
-		fmt.Println("✅ Verbunden mit MQTT-Broker:", config.MQTTBroker)
+		fmt.Println("✅ Verbunden mit MQTT-Broker:", a.config.MQTTBroker)
 	}
 	a.client = mqtt.NewClient(opts)
 	if token := a.client.Connect(); token.Wait() && token.Error() != nil {
