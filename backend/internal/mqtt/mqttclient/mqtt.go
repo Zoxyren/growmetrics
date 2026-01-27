@@ -29,7 +29,6 @@ func NewAdapter(cfg MQTTBroker) *MQTTAdapter {
 
 func (a *MQTTAdapter) Connect() error {
 	opts := mqtt.NewClientOptions()
-	// opts.AddBroker(config.MQTTBroker)
 	brokerURL := fmt.Sprintf("tls://%s:%d", a.config.MQTTBroker, a.config.MQTTPort)
 	opts.AddBroker(brokerURL)
 	opts.SetClientID(a.config.ClientID)
@@ -37,7 +36,7 @@ func (a *MQTTAdapter) Connect() error {
 	opts.SetPassword(a.config.MQTTPW)
 
 	opts.OnConnect = func(c mqtt.Client) {
-		fmt.Println("✅ Verbunden mit MQTT-Broker:", a.config.MQTTBroker)
+		fmt.Println("Verbunden mit MQTT-Broker:", a.config.MQTTBroker)
 	}
 	a.client = mqtt.NewClient(opts)
 	if token := a.client.Connect(); token.Wait() && token.Error() != nil {
