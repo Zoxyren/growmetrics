@@ -6,12 +6,11 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/labstack/echo/v4"
+	"esp32/backend/internal/database"
+	"esp32/backend/internal/mqtt/mqttclient"
 
 	"github.com/joho/godotenv"
-	_ "github.com/joho/godotenv/autoload"
-
-	"esp32/backend/internal/mqtt/mqttclient"
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
@@ -19,33 +18,44 @@ func main() {
 	if err != nil {
 		log.Fatal("Fehler beim Laden der .env Datei")
 	}
-	fmt.Printf("Verbinde zu Broker: %s\n", os.Getenv("MQTT_BROKER"))
+
 	cfg := mqttclient.MQTTBroker{
 		MQTTBroker: os.Getenv("MQTT_BROKER"),
 		MQTTUser:   os.Getenv("MQTT_USER"),
 		MQTTPW:     os.Getenv("MQTT_PW"),
 		MQTTTopic:  os.Getenv("MQTT_TOPIC"),
 		MQTTPort:   8883,
-		ClientID:   os.Getenv("CLIENT_ID"),
+		ClientID:   os.Getenv("MQTT_CLIENT_ID"),
 	}
-	adapter := mqttclient.NewAdapter(cfg)
+
+	fmt.Printf("Verbinde zu Broker: %s\n", cfg.MQTTBroker)
+
+	db, err := database.NewPostgresConnection()
+	if err != nil {
+		slog.Error("failed to establish connection", "error:", err)
+	}
+	defer db.Close()
+
+	adapter := mqttclient.NewAdapter(cfg, db)
 	if err := adapter.Connect(); err != nil {
 		slog.Error("Konnte MQTT nicht verbinden", "error:", err)
+		return
 	}
-	go func() {
-		defer adapter.Disconnect(250)
-		subscribeToken := adapter.RecieveTopics(cfg.MQTTTopic, 1)
 
-		if subscribeToken.Wait() && subscribeToken.Error() != nil {
-			slog.Error("Failed to subscribe to topic!", "error", subscribeToken.Error)
-		}
+	adapter.RecieveTopics("esp32/oliver1/metrics", 1)
+	fmt.Println("Warte auf Topic: esp32/oliver1/metrics...")
 
-		fmt.Println("Programm läuft und hält die Verbindung. Beenden mit Ctrl+C.")
-		select {}
-	}()
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
-		return c.String(202, "request sucesfully")
+		return c.String(200, "request successfully")
 	})
-	e.Logger.Fatal(e.Start(":1323"))
+
+	go func() {
+		if err := e.Start(":1323"); err != nil {
+			fmt.Printf("Webserver Fehler: %v\n", err)
+		}
+	}()
+
+	fmt.Println("Backend aktiv. Sende jetzt Daten von Wokwi.")
+	select {}
 }
