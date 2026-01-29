@@ -23,7 +23,7 @@ type MQTTAdapter struct {
 	db     *sql.DB
 }
 
-func NewAdapter(cfg MQTTBroker, db *sql.DB) *MQTTAdapter {
+func NewMQTTAdapter(cfg MQTTBroker, db *sql.DB) *MQTTAdapter {
 	return &MQTTAdapter{
 		config: cfg,
 		db:     db,

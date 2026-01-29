@@ -35,7 +35,7 @@ func (a *MQTTAdapter) RecieveMessage(c mqtt.Client, msg mqtt.Message) {
 		VALUES ($1, $2, $3, $4, $5)`
 
 	res, err := a.db.Exec(query,
-		data.Device,
+		data.DeviceID,
 		data.Temperature,
 		data.Humidity,
 		data.Pressure,
@@ -46,7 +46,7 @@ func (a *MQTTAdapter) RecieveMessage(c mqtt.Client, msg mqtt.Message) {
 		slog.Error("DB-Insert fehlgeschlagen", "error", err)
 	} else {
 		rows, _ := res.RowsAffected()
-		fmt.Printf("Gespeichert | Gerät: %s | Zeilen: %d | Payload: %s\n", data.Device, rows, rawPayload)
+		fmt.Printf("Gespeichert | Gerät: %s | Zeilen: %d | Payload: %s\n", data.DeviceID, rows, rawPayload)
 	}
 
 	msg.Ack()
