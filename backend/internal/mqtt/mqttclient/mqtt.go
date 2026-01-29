@@ -1,6 +1,7 @@
 package mqttclient
 
 import (
+	"database/sql"
 	"fmt"
 	"log/slog"
 
@@ -19,11 +20,13 @@ type MQTTBroker struct {
 type MQTTAdapter struct {
 	client mqtt.Client
 	config MQTTBroker
+	db     *sql.DB
 }
 
-func NewAdapter(cfg MQTTBroker) *MQTTAdapter {
+func NewAdapter(cfg MQTTBroker, db *sql.DB) *MQTTAdapter {
 	return &MQTTAdapter{
 		config: cfg,
+		db:     db,
 	}
 }
 
