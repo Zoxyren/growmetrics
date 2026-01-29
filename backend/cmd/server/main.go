@@ -36,11 +36,12 @@ func main() {
 	}
 	defer db.Close()
 
-	adapter := mqttclient.NewAdapter(cfg, db)
+	adapter := mqttclient.NewMQTTAdapter(cfg, db)
 	if err := adapter.Connect(); err != nil {
 		slog.Error("Konnte MQTT nicht verbinden", "error:", err)
 		return
 	}
+	dbadapter := database.NewDatabaseAdapter(db)
 
 	adapter.RecieveTopics("esp32/oliver1/metrics", 1)
 	fmt.Println("Warte auf Topic: esp32/oliver1/metrics...")
@@ -48,6 +49,13 @@ func main() {
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
 		return c.String(200, "request successfully")
+	})
+	e.GET("/data", func(c echo.Context) error {
+		metrics, err := dbadapter.GetAllMetrics()
+		if err != nil {
+			slog.Error("Failed to fetch Metrics", "error", err)
+		}
+		return c.JSON(200, metrics)
 	})
 
 	go func() {
