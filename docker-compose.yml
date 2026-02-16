@@ -1,13 +1,11 @@
 version: '3.8'
 
 services:
-  # Die PostgreSQL Datenbank
   db:
     image: postgres:15-alpine
     container_name: growmetrics_db
     restart: always
     environment:
-      # Diese Variablen ziehen die Werte direkt aus deiner .env (Bild 21)
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
@@ -16,13 +14,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # Web-Interface für die Datenbank (Adminer)
   adminer:
     image: adminer
     container_name: growmetrics_adminer
     restart: always
     ports:
       - "8080:8080"
+
+  backend:
+    build: .
+    environment:
+      - REDIS_ADDR=redis:6379 
+    depends_on:
+      - redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:
