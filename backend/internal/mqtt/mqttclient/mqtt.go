@@ -65,4 +65,3 @@ func (a *MQTTAdapter) Disconnect(quiesce uint) {
 		fmt.Println("MQTT Verbindung erfolgreich geschlossen")
 	}
 }
-

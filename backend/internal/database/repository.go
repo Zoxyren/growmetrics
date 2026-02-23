@@ -43,6 +43,9 @@ func (da *DatabaseAdapter) GetCustomerIDByDeviceID(deviceID string) (int, error)
 	return customerID, err
 }
 
+// Customer ID kann weg!
+// device version muss dazu
+// Teste 2 esp32 gleiches topic daten filtern
 func (da *DatabaseAdapter) SaveSensorData(data models.SensorData) error {
 	query := `
         INSERT INTO sensor_data (device_id, customer_id, temperature, humidity, pressure, topic)

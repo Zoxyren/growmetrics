@@ -28,6 +28,14 @@ func main() {
 	}
 	defer db.Close()
 
+	// influx, err := database.NewInfluxDB()
+	//	if err != nil {
+	//	slog.Error("Failed to establish connection", "error:", err)
+	// os.Exit(1)
+	// return
+	//	}
+	// defer influx.Close()
+
 	dbadapter := database.NewDatabaseAdapter(db)
 
 	sensorService := domain.NewSensorService(dbadapter)
