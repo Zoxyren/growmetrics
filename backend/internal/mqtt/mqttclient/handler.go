@@ -32,7 +32,5 @@ func (a *MQTTAdapter) RecieveMessage(c mqtt.Client, msg mqtt.Message) {
 	} else {
 		fmt.Printf("Erfolgreich verarbeitet: %s\n", payload.DeviceID)
 	}
-
 	msg.Ack()
 }
-

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 
 	"esp32/backend/internal/models"
@@ -16,7 +17,7 @@ func NewDatabaseAdapter(db *sql.DB) *DatabaseAdapter {
 
 func (da *DatabaseAdapter) GetAllMetrics() ([]models.SensorData, error) {
 	rows, err := da.db.Query(`
-        SELECT id, device_id, customer_id, temperature, humidity, pressure, topic, created_at 
+        SELECT id, device_id, temperature, humidity, pressure, topic, created_at 
         FROM sensor_data 
         ORDER BY created_at DESC 
         LIMIT 100`)
@@ -28,7 +29,7 @@ func (da *DatabaseAdapter) GetAllMetrics() ([]models.SensorData, error) {
 	var metrics []models.SensorData
 	for rows.Next() {
 		var v models.SensorData
-		err := rows.Scan(&v.ID, &v.DeviceID, &v.CustomerID, &v.Temperature, &v.Humidity, &v.Pressure, &v.Topic, &v.CreatedAt)
+		err := rows.Scan(&v.ID, &v.DeviceID, &v.Temperature, &v.Humidity, &v.Pressure, &v.Topic, &v.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -45,16 +46,28 @@ func (da *DatabaseAdapter) GetCustomerIDByDeviceID(deviceID string) (int, error)
 
 func (da *DatabaseAdapter) SaveSensorData(data models.SensorData) error {
 	query := `
-        INSERT INTO sensor_data (device_id, customer_id, temperature, humidity, pressure, topic)
-        VALUES ($1, $2, $3, $4, $5, $6)`
+        INSERT INTO sensor_data (device_id, temperature, humidity, pressure, topic)
+        VALUES ($1, $2, $3, $4, $5)`
 
 	_, err := da.db.Exec(query,
 		data.DeviceID,
-		data.CustomerID,
+		//	data.CustomerID,
 		data.Temperature,
 		data.Humidity,
 		data.Pressure,
 		data.Topic,
 	)
 	return err
+}
+
+func (da *DatabaseAdapter) GetLatestData(ctx context.Context, deviceID string) (models.SensorData, error) {
+	var data models.SensorData
+	err := da.db.QueryRow("SELECT device_id, temperature, humidity, pressure, topic FROM SensorData WHERE device_id = $1 ORDER BY created_at DESC LIMIT 1;", deviceID).Scan(
+		&data.DeviceID,
+		&data.Temperature,
+		&data.Humidity,
+		&data.Pressure,
+		&data.Topic,
+	)
+	return data, err
 }

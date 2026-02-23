@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -15,11 +15,11 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Fehler beim Laden der .env Datei")
+	if err := godotenv.Load(); err != nil {
+		// Wir loggen es nur, brechen aber nicht ab (Fatal).
+		// Im Docker sind die Variablen auch ohne Datei da!
+		slog.Info("Keine .env Datei gefunden, nutze System-Umgebungsvariablen")
 	}
-
 	db, err := database.NewPostgresConnection()
 	if err != nil {
 		slog.Error("failed to establish connection", "error:", err)
@@ -28,9 +28,17 @@ func main() {
 	}
 	defer db.Close()
 
-	dbadapter := database.NewDatabaseAdapter(db)
+	// influx, err := database.NewInfluxDB()
+	//	if err != nil {
+	//	slog.Error("Failed to establish connection", "error:", err)
+	// os.Exit(1)
+	// return
+	//	}
+	// defer influx.Close()
 
-	sensorService := domain.NewSensorService(dbadapter)
+	dbadapter := database.NewDatabaseAdapter(db)
+	cacheAdapter := database.NewRedisAdapter(os.Getenv("REDIS_ADDR"))
+	sensorService := domain.NewSensorService(dbadapter, cacheAdapter)
 
 	cfg := mqttclient.MQTTBroker{
 		MQTTBroker: os.Getenv("MQTT_BROKER"),
@@ -56,7 +64,6 @@ func main() {
 	})
 
 	e.GET("/data", func(c echo.Context) error {
-		// Auch hier nutzt du den Adapter, der das Interface erfüllt
 		metrics, err := dbadapter.GetAllMetrics()
 		if err != nil {
 			slog.Error("Failed to fetch Metrics", "error", err)
@@ -64,7 +71,14 @@ func main() {
 		}
 		return c.JSON(200, metrics)
 	})
-
+	e.GET("/metrics/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		data, err := sensorService.GetLatestData(c.Request().Context(), id)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+		return c.JSON(http.StatusOK, data)
+	})
 	go func() {
 		if err := e.Start(":1323"); err != nil {
 			fmt.Printf("Webserver Fehler: %v\n", err)
