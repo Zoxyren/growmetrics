@@ -11,7 +11,6 @@ type Customer struct {
 
 type Device struct {
 	ID         string    `json:"id" gorm:"primaryKey"`
-	CustomerID int       `json:"customer_id" gorm:"index;not null"`
 	DeviceName string    `json:"device_name"`
 	CreatedAt  time.Time `json:"created_at"`
 
@@ -21,7 +20,6 @@ type Device struct {
 type SensorData struct {
 	ID          int64     `json:"id" gorm:"primaryKey"`
 	DeviceID    string    `json:"device_id" gorm:"index;not null"`
-	CustomerID  int       `json:"customer_id" gorm:"index;not null"`
 	Temperature float64   `json:"temperature" gorm:"type:numeric(5,2)"`
 	Humidity    float64   `json:"humidity" gorm:"type:numeric(5,2)"`
 	Pressure    float64   `json:"pressure" gorm:"type:numeric(6,1)"`
