@@ -3,9 +3,21 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"esp32/backend/internal/models"
 )
+
+type Range struct {
+	Min float64
+	Max float64
+}
+
+var MetricRanges = map[string]Range{
+	"temperature": {Min: 0.1, Max: 100.0},
+	"humidity":    {Min: 0.0, Max: 100.0},
+	"pressure":    {Min: 300.0, Max: 1100.0},
+}
 
 type DatabaseAdapter struct {
 	db *sql.DB
@@ -45,6 +57,19 @@ func (da *DatabaseAdapter) GetCustomerIDByDeviceID(deviceID string) (int, error)
 }
 
 func (da *DatabaseAdapter) SaveSensorData(data models.SensorData) error {
+	metricstoCheck := map[string]float64{
+		"temperature": data.Temperature,
+		"humidity":    data.Humidity,
+		"pressure":    data.Pressure,
+	}
+	for name, value := range metricstoCheck {
+		if r, ok := MetricRanges[name]; ok {
+			if value < r.Min || value > r.Max {
+				return fmt.Errorf("validierung fehlgeschlagen: %s (%.2f) außerhalb Bereich", name, value)
+			}
+		}
+	}
+
 	query := `
         INSERT INTO sensor_data (device_id, temperature, humidity, pressure, topic)
         VALUES ($1, $2, $3, $4, $5)`

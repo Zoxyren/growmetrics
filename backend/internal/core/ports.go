@@ -15,4 +15,10 @@ type SensorRepository interface {
 type SensorService interface {
 	ProcessIncomingMetric(payload models.SensorPayload, topic string) error
 	GetLatestData(ctx context.Context, deviceID string) (models.SensorData, error)
+	GetActiveDevices(ctx context.Context) ([]string, error)
+}
+
+type StatusRepository interface {
+	SetDeviceActive(ctx context.Context, deviceID string) error
+	GetAllDevices(ctx context.Context) ([]string, error)
 }
