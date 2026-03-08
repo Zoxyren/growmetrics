@@ -16,8 +16,6 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		// Wir loggen es nur, brechen aber nicht ab (Fatal).
-		// Im Docker sind die Variablen auch ohne Datei da!
 		slog.Info("Keine .env Datei gefunden, nutze System-Umgebungsvariablen")
 	}
 	db, err := database.NewPostgresConnection()
@@ -28,17 +26,9 @@ func main() {
 	}
 	defer db.Close()
 
-	// influx, err := database.NewInfluxDB()
-	//	if err != nil {
-	//	slog.Error("Failed to establish connection", "error:", err)
-	// os.Exit(1)
-	// return
-	//	}
-	// defer influx.Close()
-
 	dbadapter := database.NewDatabaseAdapter(db)
 	cacheAdapter := database.NewRedisAdapter(os.Getenv("REDIS_ADDR"))
-	sensorService := domain.NewSensorService(dbadapter, cacheAdapter)
+	sensorService := domain.NewSensorService(dbadapter, cacheAdapter, cacheAdapter)
 
 	cfg := mqttclient.MQTTBroker{
 		MQTTBroker: os.Getenv("MQTT_BROKER"),
@@ -79,12 +69,15 @@ func main() {
 		}
 		return c.JSON(http.StatusOK, data)
 	})
-	go func() {
-		if err := e.Start(":1323"); err != nil {
-			fmt.Printf("Webserver Fehler: %v\n", err)
+	e.GET("/active-devices", func(c echo.Context) error {
+		devices, err := sensorService.GetActiveDevices(c.Request().Context())
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-	}()
-
-	fmt.Println("Backend aktiv. Sende jetzt Daten von Wokwi.")
-	select {}
+		return c.JSON(http.StatusOK, devices)
+	})
+	fmt.Println("Backend aktiv. Webserver startet auf :1323...")
+	if err := e.Start(":1323"); err != nil {
+		slog.Error("Webserver konnte nicht starten", "error", err)
+	}
 }

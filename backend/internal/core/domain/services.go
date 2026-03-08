@@ -12,12 +12,14 @@ import (
 type sensorService struct {
 	repo  core.SensorRepository
 	cache core.CacheRepository
+	redis core.StatusRepository
 }
 
-func NewSensorService(r core.SensorRepository, c core.CacheRepository) core.SensorService {
+func NewSensorService(r core.SensorRepository, c core.CacheRepository, red core.StatusRepository) core.SensorService {
 	return &sensorService{
 		repo:  r,
 		cache: c,
+		redis: red,
 	}
 }
 
@@ -33,6 +35,7 @@ func (s *sensorService) ProcessIncomingMetric(payload models.SensorPayload, topi
 	if err != nil {
 		slog.Info("failed to save data in cache", "error", err)
 	}
+	_ = s.redis.SetDeviceActive(context.Background(), payload.DeviceID)
 
 	return s.repo.SaveSensorData(sensorData)
 }
@@ -49,4 +52,8 @@ func (s *sensorService) GetLatestData(ctx context.Context, deviceID string) (mod
 	_ = s.cache.SaveLatestMetrics(ctx, deviceID, dbData)
 
 	return dbData, nil
+}
+
+func (s *sensorService) GetActiveDevices(ctx context.Context) ([]string, error) {
+	return s.redis.GetAllDevices(ctx)
 }
